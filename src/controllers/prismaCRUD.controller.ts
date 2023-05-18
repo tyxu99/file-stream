@@ -11,14 +11,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
-import { Post as PostModel, User as UserModel, Prisma } from '@prisma/client';
+// import { Post as any, User as any, Prisma } from '@prisma/client';
 
 @Controller()
 export class PrismaCRUDController {
   constructor(private readonly prismaService: PrismaService) {}
 
   @Get('post/:id')
-  async getPostById(@Params('id') id: string): Promise<PostModel> {
+  async getPostById(@Param('id') id: string): Promise<any> {
     return this.prismaService.post.findUnique({ where: { id: Number(id) } });
   }
 
@@ -28,7 +28,7 @@ export class PrismaCRUDController {
     @Query('skip') skip?: number,
     @Query('searchString') searchString?: string,
     @Query('orderBy') orderBy?: 'asc' | 'desc',
-  ): Promise<PostModel[]> {
+  ): Promise<any[]> {
     const or = searchString
       ? {
           OR: [
@@ -52,12 +52,12 @@ export class PrismaCRUDController {
   }
 
   @Get('users')
-  async getAllUsers(): Promise<UserModel[]> {
+  async getAllUsers(): Promise<any[]> {
     return this.prismaService.user.findMany();
   }
 
   @Get('user/:id/drafts')
-  async getDraftByUser(@Param('id') id: string): Promise<PostModel[]> {
+  async getDraftByUser(@Param('id') id: string): Promise<any[]> {
     return this.prismaService.user
       .findUnique({
         where: { id: Number(id) },
@@ -72,7 +72,7 @@ export class PrismaCRUDController {
   @Post('post')
   async createDraft(
     @Body() postData: { title: string; content?: string; authorEmail: string },
-  ): Promise<PostModel> {
+  ): Promise<any> {
     const { title, content, authorEmail } = postData;
     return this.prismaService.post.create({
       data: {
@@ -91,9 +91,9 @@ export class PrismaCRUDController {
     userData: {
       name?: string;
       email: string;
-      posts?: Prisma.PostCreateInput[];
+      posts?: any[];
     },
-  ): Promise<UserModel> {
+  ): Promise<any> {
     const postData = userData.posts.map((post) => ({
       title: post?.title,
       content: post?.content,
@@ -110,7 +110,7 @@ export class PrismaCRUDController {
   }
 
   @Put('publish/:id')
-  async togglePublishPost(@Param('id') id: string): Promise<PostModel> {
+  async togglePublishPost(@Param('id') id: string): Promise<any> {
     const postData = await this.prismaService.post.findUnique({
       where: { id: Number(id) },
       select: {
@@ -124,12 +124,12 @@ export class PrismaCRUDController {
   }
 
   @Delete('post/:id')
-  async deletePost(@Param('id') id: string): Promise<PostModel> {
+  async deletePost(@Param('id') id: string): Promise<any> {
     return this.prismaService.post.delete({ where: { id: Number(id) } });
   }
 
   @Put('/post/:id/views')
-  async incrementPostViewCount(@Param('id') id: string): Promise<PostModel> {
+  async incrementPostViewCount(@Param('id') id: string): Promise<any> {
     return this.prismaService.post.update({
       where: { id: Number(id) },
       data: {

@@ -12,17 +12,25 @@ import { Response } from 'express';
 import { getFileInfo } from 'prettier';
 
 class SampleDto {
-  name: string;
+  filename: string;
+  fileData: File;
 }
 
-@Controller('files')
+@Controller('')
 export class FileUploadController {
+  @Post('uploadFile')
+  receiveFile(@Body() body: any, @Res() res: any) {
+    console.log('bbbody', body);
+    res.send({ name: 'aaaaaa' });
+  }
+
   @UseInterceptors(FileInterceptor('file'))
   @Post('file')
   uploadFile(
     @Body() body: SampleDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    console.log('body, file', body, file);
     return {
       body,
       file: file.buffer.toString,
@@ -51,7 +59,7 @@ export class FileUploadController {
   }
 
   @UseInterceptors(FileInterceptor('file'))
-  @Post('file.fail-validation')
+  @Post('file/fail-validation')
   uploadFileAndFailValidation(
     @Body() body: SampleDto,
     @UploadedFile(
