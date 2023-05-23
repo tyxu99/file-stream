@@ -4,6 +4,8 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Get,
+  Query,
   Res,
   UploadedFile,
   UploadedFiles,
@@ -12,9 +14,10 @@ import {
 import { FileInterceptor, AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { extname, join, resolve } from 'path';
 
 import * as fs from 'fs';
+// import { writeRecursive } from '../../utils/helper';
 
 @Controller('')
 export class FileUploadController {
@@ -89,6 +92,12 @@ export class FileUploadController {
     }
   }
 
+  @Get('isFileExist')
+  isFileExist(@Query('filename') filename: string, @Res() res: Response) {
+    console.log(filename);
+    res.send({ data: fs.existsSync(join('./uploads/', filename)) });
+  }
+
   @Post('uploadHugeFile')
   @UseInterceptors(FileInterceptor('file'))
   uploadHugeFile(
@@ -98,49 +107,73 @@ export class FileUploadController {
     @Res() res: Response,
   ) {
     console.log(file, filename, current);
+    const ws = fs.createWriteStream(
+      join('./uploads/', filename + '-chunk-' + current),
+    );
+    ws.write(file.buffer, (err) => {
+      if (err) {
+        console.log('write failed');
+      } else {
+        ws.end();
+      }
+    });
 
-    const savedFileName = current + '-' + Date.now() + filename;
-    const savedFileLocation = `./uploads/chunks/${savedFileName}`; // 保存在磁盘上的完整路径
-    // 重命名文件
-    fs.renameSync(file, savedFileLocation);
-
+    console.log();
     res.send({ msg: 'chunk uploaded' });
   }
 
-  @Post('mergeFileChunks')
+  @Get('mergeFileChunks')
   async mergeFileChunks(
-    @Body('filename') filename: string,
-    @Body('chunkQuantity') chunkQuantity: number,
+    @Query('filename') filename: string,
+    @Res() res: Response,
   ) {
-    async function mergeChunks(
-      fileName: string,
-      fileFolder: string,
-      chunkQuantity: number,
-    ) {
-      const chunks: string[] = [];
-      for (let i = 0; i < chunkQuantity; i++) {
-        chunks.push(join(fileFolder, `${fileName}.part${i + 1}`));
-      }
-      const writeStream = fs.createWriteStream(join(fileFolder, fileName));
-      await Promise.all(
-        chunks.map((chunkPath) => {
-          return new Promise((resolve, reject) => {
-            const readStream = fs.createReadStream(chunkPath);
-            readStream.pipe(writeStream, { end: false });
-            readStream.on('end', () => {
-              fs.unlinkSync(chunkPath);
-              resolve('ok');
-            });
-            readStream.on('error', (error) => {
-              reject(error);
-            });
-          });
-        }),
-      );
-      writeStream.end();
-    }
-    const fileFolder = join(__dirname, './uploads/' + filename);
-    await mergeChunks(filename, fileFolder, chunkQuantity);
     console.log(filename);
+    fs.readdir(join('./uploads'), (err, file) => {
+      if (err) {
+        console.log('read uploads chunks failed', err);
+      } else {
+        const selectedChunks = file
+          .filter((d) =>
+            d.includes(
+              filename.slice(0, filename.lastIndexOf('.')) + '-chunk-',
+            ),
+          )
+          .sort(
+            (a: string, b: string) =>
+              parseInt(a.split('-')[2]) - parseInt(b.split('-')[2]),
+          )
+          .map((d) => join('./uploads', d));
+        console.log('selectedChunks', selectedChunks);
+        const ws = fs.createWriteStream(join('./uploads/', filename));
+
+        const writeRecursive = (fileList, writeStream) => {
+          if (fileList.length) {
+            const filePath = fileList.shift();
+            const rs = fs.createReadStream(filePath);
+            rs.pipe(writeStream, { end: false });
+            rs.on('end', () => {
+              writeRecursive(fileList, writeStream);
+            });
+          } else {
+            writeStream.end();
+          }
+        };
+
+        writeRecursive([...selectedChunks], ws);
+        ws.on('close', () => {
+          console.log('merged');
+          selectedChunks.forEach((path) => {
+            console.log('deleting', path);
+            if (fs.existsSync(path)) {
+              fs.unlinkSync(path);
+              console.log(path, ' deleted');
+            } else {
+              console.log(path, ' file not exist');
+            }
+          });
+        });
+        res.send({ data: selectedChunks });
+      }
+    });
   }
 }
