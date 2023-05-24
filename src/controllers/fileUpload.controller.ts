@@ -94,7 +94,6 @@ export class FileUploadController {
 
   @Get('isFileExist')
   isFileExist(@Query('filename') filename: string, @Res() res: Response) {
-    console.log(filename);
     res.send({ data: fs.existsSync(join('./uploads/', filename)) });
   }
 
@@ -106,7 +105,6 @@ export class FileUploadController {
     @Body('current') current: string,
     @Res() res: Response,
   ) {
-    console.log(file, filename, current);
     const ws = fs.createWriteStream(
       join('./uploads/', filename + '-chunk-' + current),
     );
@@ -118,7 +116,6 @@ export class FileUploadController {
       }
     });
 
-    console.log();
     res.send({ msg: 'chunk uploaded' });
   }
 
@@ -127,7 +124,7 @@ export class FileUploadController {
     @Query('filename') filename: string,
     @Res() res: Response,
   ) {
-    console.log(filename);
+    console.log('mergeFileChunks', filename);
     fs.readdir(join('./uploads'), (err, file) => {
       if (err) {
         console.log('read uploads chunks failed', err);
@@ -143,8 +140,9 @@ export class FileUploadController {
               parseInt(a.split('-')[2]) - parseInt(b.split('-')[2]),
           )
           .map((d) => join('./uploads', d));
-        console.log('selectedChunks', selectedChunks);
-        const ws = fs.createWriteStream(join('./uploads/', filename));
+        const ws = fs.createWriteStream(
+          join('./uploads/', Date.now() + filename),
+        );
 
         const writeRecursive = (fileList, writeStream) => {
           if (fileList.length) {
@@ -161,9 +159,7 @@ export class FileUploadController {
 
         writeRecursive([...selectedChunks], ws);
         ws.on('close', () => {
-          console.log('merged');
           selectedChunks.forEach((path) => {
-            console.log('deleting', path);
             if (fs.existsSync(path)) {
               fs.unlinkSync(path);
               console.log(path, ' deleted');
