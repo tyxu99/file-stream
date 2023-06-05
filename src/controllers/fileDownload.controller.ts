@@ -9,6 +9,6 @@ export class FileDownloadController {
 
   @Get(':filename')
   downloadFile(@Param('filename') filename: string, @Res() res: Response) {
-    res.download(join(process.cwd(), 'uploads', filename));
+    res.send({ data: filename });
   }
 }

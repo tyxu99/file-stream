@@ -9,7 +9,7 @@ import {
   Delete,
   Patch,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../services/prisma.service';
 
 // import { Post as any, User as any, Prisma } from '@prisma/client';
 
