@@ -21,6 +21,30 @@ import * as fs from 'fs';
 
 @Controller('')
 export class FileUploadController {
+  @Get('fileList')
+  getFileList(@Res() res: Response) {
+    fs.readdir(join('./uploads'), (err, files) => {
+      if (err) {
+        res.send({ data: 'read fileList error' });
+      }
+
+      const regex = /^\..+/; // 定义正则表达式，匹配以 . 开头的文件
+      const filteredFiles = files.filter((file) => !regex.test(file));
+
+      const t: any[] = [];
+      filteredFiles.forEach((file) => {
+        const filePath = join('./uploads', file);
+        const stats = fs.statSync(filePath);
+        t.push({
+          fileName: file,
+          fileSize: err ? 0 : stats.size,
+          fileType: extname(file),
+        });
+      });
+      res.send({ data: t });
+    });
+  }
+
   @Post('uploadSingleFile')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -140,9 +164,7 @@ export class FileUploadController {
               parseInt(a.split('-')[2]) - parseInt(b.split('-')[2]),
           )
           .map((d) => join('./uploads', d));
-        const ws = fs.createWriteStream(
-          join('./uploads/', Date.now() + filename),
-        );
+        const ws = fs.createWriteStream(join('./uploads/', filename));
 
         const writeRecursive = (fileList, writeStream) => {
           if (fileList.length) {
