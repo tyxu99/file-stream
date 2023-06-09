@@ -55,4 +55,25 @@ export class FileDownloadController {
     const streamFile = new StreamableFile(fileStream);
     return streamFile;
   }
+
+  @Get('output')
+  streamOutput(@Res() res: Response) {
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'text/event-stream');
+
+    const str =
+      '直到18世纪80年代两位德国语言学家鲁迪格和格雷尔曼以及英国学者雅各布·布赖恩才通过对吉卜赛方言的研究各自几乎同时期考证出欧洲吉卜赛人的来源他们发现吉卜赛语来自印度其中很多词汇与印度的梵文极为相似与印地语也十分接近他们因此得出结论吉卜赛人的发源地既不是埃及也不是波希米亚希腊而是印度';
+
+    let count = 0;
+    setInterval(() => {
+      count++;
+      if (count < 50) {
+        const start = Math.floor(Math.random() * str.length);
+        const data = str.slice(start, start + Math.floor(Math.random() * 5));
+
+        // 输出格式遵循 event_stream 协议
+        res.write('event: message\nid: ' + count + '\ndata: ' + data + '\n\n');
+      }
+    }, 300);
+  }
 }
