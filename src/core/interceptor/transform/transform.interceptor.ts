@@ -4,16 +4,18 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable, map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 @Injectable()
-export class ResponseInterceptor implements NestInterceptor {
+export class TransformInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    console.log('response interceptor');
     return next.handle().pipe(
       map((data) => {
-        console.log('data', data);
-        return { data };
+        return {
+          data,
+          code: 0,
+          msg: '请求成功',
+        };
       }),
     );
   }
