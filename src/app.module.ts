@@ -1,14 +1,13 @@
-import { Module } from '@nestjs/common';
-import { UserController } from './controllers/user.controller';
-import { FileService } from './services/file.service';
-import { UserService } from './services/user.service';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { PostsModule } from './posts/posts.module';
 import { FileModule } from './file/file.module';
-import { FileController } from './file/file.controller';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
   imports: [PostsModule, FileModule],
-  controllers: [FileController, UserController],
-  providers: [FileService, UserService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): any {
+    consumer.apply(LoggerMiddleware).forRoutes('file');
+  }
+}
