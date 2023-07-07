@@ -4,24 +4,236 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id Int @id @default(autoincrement())
-  email String @unique
-  name String?
-  posts Post[]
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model adjustsalary {
+  id           Int       @id @default(autoincrement())
+  eid          Int?
+  asDate       DateTime? @db.Date
+  beforeSalary Int?
+  afterSalary  Int?
+  reason       String?   @db.VarChar(255)
+  remark       String?   @db.VarChar(255)
 }
 
-model Post {
-  id Int @id @default(autoincrement())
-  createAt DateTime @default(now())
-  updateAt DateTime @updatedAt
-  title String
-  content String?
-  published Boolean @default(false)
-  viewCount Int @default(0)
-  author User? @relation(fields: [authorId], references: [id])
-  authorId Int?
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model appraise {
+  id         Int       @id @default(autoincrement())
+  eid        Int?
+  appDate    DateTime? @db.Date
+  appResult  String?   @db.VarChar(32)
+  appContent String?   @db.VarChar(255)
+  remark     String?   @db.VarChar(255)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model department {
+  id       Int      @id @default(autoincrement())
+  name     String?  @db.VarChar(32)
+  parentId Int?
+  depPath  String?  @db.VarChar(255)
+  enabled  Boolean? @default(true)
+  isParent Boolean? @default(false)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model employee {
+  id             Int       @id @default(autoincrement())
+  name           String?   @db.VarChar(10)
+  gender         String?   @db.Char(4)
+  birthday       DateTime? @db.Date
+  idCard         String?   @db.Char(18)
+  wedlock        String?   @db.VarChar(2)
+  nationId       Int?
+  nativePlace    String?   @db.VarChar(20)
+  politicId      Int?
+  email          String?   @db.VarChar(20)
+  phone          String?   @db.VarChar(11)
+  address        String?   @db.VarChar(64)
+  departmentId   Int?
+  jobLevelId     Int?
+  posId          Int?
+  engageForm     String?   @db.VarChar(8)
+  tiptopDegree   String?   @db.VarChar(10)
+  specialty      String?   @db.VarChar(32)
+  school         String?   @db.VarChar(32)
+  beginDate      DateTime? @db.Date
+  workState      Boolean?  @default(true)
+  workID         String?   @db.Char(8)
+  contractTerm   Float?
+  conversionTime DateTime? @db.Date
+  notWorkDate    DateTime? @db.Date
+  beginContract  DateTime? @db.Date
+  endContract    DateTime? @db.Date
+  workAge        Int?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model employeeec {
+  id       Int       @id @default(autoincrement())
+  eid      Int?
+  ecDate   DateTime? @db.Date
+  ecReason String?   @db.VarChar(255)
+  ecPoint  Int?
+  ecType   Int?
+  remark   String?   @db.VarChar(255)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model employeeremove {
+  id         Int       @id @default(autoincrement())
+  eid        Int?
+  afterDepId Int?
+  afterJobId Int?
+  removeDate DateTime? @db.Date
+  reason     String?   @db.VarChar(255)
+  remark     String?   @db.VarChar(255)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model employeetrain {
+  id           Int       @id @default(autoincrement())
+  eid          Int?
+  trainDate    DateTime? @db.Date
+  trainContent String?   @db.VarChar(255)
+  remark       String?   @db.VarChar(255)
+}
+
+model empsalary {
+  id  Int  @id @default(autoincrement())
+  eid Int?
+  sid Int?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model hr {
+  id        Int      @id @default(autoincrement())
+  name      String?  @db.VarChar(32)
+  phone     String?  @db.Char(11)
+  telephone String?  @db.VarChar(16)
+  address   String?  @db.VarChar(64)
+  enabled   Boolean? @default(true)
+  username  String?  @db.VarChar(255)
+  password  String?  @db.VarChar(255)
+  userface  String?  @db.VarChar(255)
+  remark    String?  @db.VarChar(255)
+}
+
+model hr_role {
+  id   Int  @id @default(autoincrement())
+  hrid Int?
+  rid  Int?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model joblevel {
+  id         Int       @id @default(autoincrement())
+  name       String?   @db.VarChar(32)
+  titleLevel String?   @db.VarChar(10)
+  createDate DateTime? @default(now()) @db.Timestamp(0)
+  enabled    Boolean?  @default(true)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model mail_send_log {
+  msgId      String?   @db.VarChar(255)
+  empId      Int?
+  status     Int?      @default(0)
+  routeKey   String?   @db.VarChar(255)
+  exchange   String?   @db.VarChar(255)
+  count      Int?
+  tryTime    DateTime? @db.Date
+  createTime DateTime? @db.Date
+  updateTime DateTime? @db.Date
+
+  @@ignore
+}
+
+model menu {
+  id          Int      @id @default(autoincrement())
+  url         String?  @db.VarChar(64)
+  path        String?  @db.VarChar(64)
+  component   String?  @db.VarChar(64)
+  name        String?  @db.VarChar(64)
+  iconCls     String?  @db.VarChar(64)
+  keepAlive   Boolean?
+  requireAuth Boolean?
+  parentId    Int?
+  enabled     Boolean? @default(true)
+}
+
+model menu_role {
+  id  Int  @id @default(autoincrement())
+  mid Int?
+  rid Int?
+}
+
+model msgcontent {
+  id         Int      @id @default(autoincrement())
+  title      String?  @db.VarChar(64)
+  message    String?  @db.VarChar(255)
+  createDate DateTime @default(now()) @db.Timestamp(0)
+}
+
+model nation {
+  id   Int     @id @default(autoincrement())
+  name String? @db.VarChar(32)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oplog {
+  id      Int       @id @default(autoincrement())
+  addDate DateTime? @db.Date
+  operate String?   @db.VarChar(255)
+  hrid    Int?
+}
+
+model politicsstatus {
+  id   Int     @id @default(autoincrement())
+  name String? @db.VarChar(32)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model position {
+  id         Int       @id @default(autoincrement())
+  name       String?   @db.VarChar(32)
+  createDate DateTime? @default(now()) @db.Timestamp(0)
+  enabled    Boolean?  @default(true)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model role {
+  id     Int     @id @default(autoincrement())
+  name   String? @db.VarChar(64)
+  nameZh String? @db.VarChar(64)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model salary {
+  id                   Int       @id @default(autoincrement())
+  basicSalary          Int?
+  bonus                Int?
+  lunchSalary          Int?
+  trafficSalary        Int?
+  allSalary            Int?
+  pensionBase          Int?
+  pensionPer           Float?    @db.Float
+  createDate           DateTime? @db.Timestamp(0)
+  medicalBase          Int?
+  medicalPer           Float?    @db.Float
+  accumulationFundBase Int?
+  accumulationFundPer  Float?    @db.Float
+  name                 String?   @db.VarChar(32)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sysmsg {
+  id    Int  @id @default(autoincrement())
+  mid   Int?
+  type  Int? @default(0)
+  hrid  Int?
+  state Int? @default(0)
 }
